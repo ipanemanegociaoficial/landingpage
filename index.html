@@ -53,11 +53,16 @@
         }
 
         .logo {
-            width: 100%;
-            max-width: 220px;
-            height: auto;
+            width: 110px;
+            height: 110px;
             margin: 0 auto 16px;
+            padding: 8px;
             display: block;
+            object-fit: contain;
+            background: #ffffff;
+            border: 2px solid #dceaff;
+            border-radius: 50%;
+            box-shadow: 0 6px 18px rgba(42, 102, 190, 0.16);
         }
 
         .linha {
@@ -222,7 +227,8 @@
             }
 
             .logo {
-                max-width: 190px;
+                width: 96px;
+                height: 96px;
             }
 
             #qrcode {
@@ -270,7 +276,7 @@
             </div>
 
             <div
-                id="nomeRecebedorExibicao"
+                id="dadosClienteExibicao"
                 class="recebedor"
             ></div>
 
@@ -345,6 +351,14 @@
             parametros.get("cidaderecebedor_pix") || ""
         ).trim();
 
+        const nomeClienteRecebido = (
+            parametros.get("nomecliente_pix") || ""
+        ).trim();
+
+        const cpfClienteRecebido = (
+            parametros.get("cpfcliente_pix") || ""
+        ).trim();
+
         /*
         =====================================================
         ELEMENTOS DA PÁGINA
@@ -363,9 +377,9 @@
         const areaValor =
             document.getElementById("valorPagamento");
 
-        const areaNomeRecebedor =
+        const areaDadosCliente =
             document.getElementById(
-                "nomeRecebedorExibicao"
+                "dadosClienteExibicao"
             );
 
         let codigoPix = "";
@@ -448,11 +462,11 @@
                 areaValor.textContent =
                     formatarValorExibicao(valorPix);
 
-                areaNomeRecebedor.textContent =
-                    "Recebedor: " +
-                    formatarNomeExibicao(
-                        nomeRecebedorRecebido
-                    );
+                areaDadosCliente.textContent =
+                    "Nome: " +
+                    nomeClienteRecebido +
+                    " - CPF: " +
+                    formatarCpf(cpfClienteRecebido);
 
                 gerarQrCode(codigoPix);
 
@@ -469,7 +483,7 @@
 
                 campoCodigo.value = "";
                 areaValor.textContent = "—";
-                areaNomeRecebedor.textContent = "";
+                areaDadosCliente.textContent = "";
             }
         }
 
@@ -684,6 +698,20 @@
                         return letra.toUpperCase();
                     }
                 );
+        }
+
+        function formatarCpf(cpf) {
+            const numeros = String(cpf || "")
+                .replace(/\D/g, "");
+
+            if (numeros.length !== 11) {
+                return cpf;
+            }
+
+            return numeros.replace(
+                /(\d{3})(\d{3})(\d{3})(\d{2})/,
+                "$1.$2.$3-$4"
+            );
         }
 
         /*
