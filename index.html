@@ -8,7 +8,9 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Copiar código PIX</title>
+    <title>Pagamento via PIX</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         * {
@@ -19,7 +21,7 @@
             margin: 0;
             min-height: 100vh;
             padding: 20px;
-            background: #f3f5f7;
+            background: #f2f5f7;
             font-family: Arial, Helvetica, sans-serif;
             display: flex;
             justify-content: center;
@@ -28,56 +30,82 @@
 
         .caixa {
             width: 100%;
-            max-width: 420px;
+            max-width: 430px;
+            padding: 28px 22px;
             background: #ffffff;
-            padding: 30px 22px;
-            border-radius: 16px;
+            border-radius: 18px;
             text-align: center;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
         }
 
         h1 {
-            margin-top: 0;
-            font-size: 25px;
+            margin: 0 0 8px;
             color: #222222;
+            font-size: 26px;
         }
 
-        p {
-            color: #555555;
+        .subtitulo {
+            margin: 0 0 22px;
+            color: #666666;
+            font-size: 15px;
             line-height: 1.5;
+        }
+
+        #qrcode {
+            width: 260px;
+            min-height: 260px;
+            margin: 0 auto 22px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #qrcode img,
+        #qrcode canvas {
+            max-width: 100%;
+            height: auto;
         }
 
         #codigoPix {
             width: 100%;
-            height: 110px;
-            margin: 15px 0;
+            height: 105px;
+            margin: 0 0 16px;
             padding: 12px;
             border: 1px solid #cccccc;
-            border-radius: 8px;
-            resize: none;
-            font-size: 13px;
+            border-radius: 10px;
             background: #f8f8f8;
+            color: #333333;
+            font-size: 13px;
+            resize: none;
         }
 
-        button {
+        .botao {
             width: 100%;
             padding: 16px;
             border: none;
             border-radius: 10px;
             background: #00a884;
-            color: white;
+            color: #ffffff;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
         }
 
-        button:active {
+        .botao:hover {
+            background: #008f70;
+        }
+
+        .botao:active {
             transform: scale(0.98);
         }
 
         #mensagem {
             min-height: 24px;
-            margin-top: 18px;
+            margin-top: 16px;
             font-weight: bold;
         }
 
@@ -88,6 +116,13 @@
         .erro {
             color: #c62828;
         }
+
+        .orientacao {
+            margin-top: 18px;
+            color: #666666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 
@@ -97,9 +132,12 @@
 
         <h1>Pagamento via PIX</h1>
 
-        <p>
-            Clique no botão abaixo para copiar o código PIX.
+        <p class="subtitulo">
+            Escaneie o QR Code com o aplicativo do seu banco
+            ou copie o código PIX abaixo.
         </p>
+
+        <div id="qrcode"></div>
 
         <textarea
             id="codigoPix"
@@ -107,11 +145,20 @@
             aria-label="Código PIX"
         ></textarea>
 
-        <button type="button" onclick="copiarPix()">
+        <button
+            type="button"
+            class="botao"
+            onclick="copiarPix()"
+        >
             📋 Copiar código PIX
         </button>
 
         <div id="mensagem"></div>
+
+        <p class="orientacao">
+            Depois de copiar, abra o aplicativo do seu banco,
+            selecione PIX Copia e Cola e cole o código.
+        </p>
 
     </div>
 
@@ -121,12 +168,27 @@
 
         const campoCodigo = document.getElementById("codigoPix");
         const mensagem = document.getElementById("mensagem");
+        const areaQrCode = document.getElementById("qrcode");
 
         campoCodigo.value = codigoPix;
 
-        if (!codigoPix) {
+        if (codigoPix) {
+            gerarQrCode(codigoPix);
+        } else {
             mensagem.textContent = "Código PIX não recebido.";
             mensagem.className = "erro";
+            areaQrCode.innerHTML = "QR Code indisponível";
+        }
+
+        function gerarQrCode(texto) {
+            areaQrCode.innerHTML = "";
+
+            new QRCode(areaQrCode, {
+                text: texto,
+                width: 240,
+                height: 240,
+                correctLevel: QRCode.CorrectLevel.M
+            });
         }
 
         async function copiarPix() {
@@ -146,7 +208,9 @@
                     copiarMetodoAlternativo();
                 }
 
-                mensagem.textContent = "✅ Código PIX copiado com sucesso!";
+                mensagem.textContent =
+                    "✅ Código PIX copiado com sucesso!";
+
                 mensagem.className = "sucesso";
 
             } catch (erro) {
@@ -173,6 +237,7 @@
         function copiarMetodoAlternativo() {
             campoCodigo.focus();
             campoCodigo.select();
+
             campoCodigo.setSelectionRange(
                 0,
                 campoCodigo.value.length
