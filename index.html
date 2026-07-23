@@ -1,99 +1,192 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>Copiar PIX</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<style>
-body{
-    margin:0;
-    padding:0;
-    background:#f5f5f5;
-    font-family:Arial, Helvetica, sans-serif;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
+    <title>Copiar código PIX</title>
 
-.box{
-    background:white;
-    width:350px;
-    padding:30px;
-    border-radius:15px;
-    text-align:center;
-    box-shadow:0 0 15px rgba(0,0,0,.2);
-}
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-button{
-    width:100%;
-    background:#28a745;
-    color:white;
-    border:none;
-    padding:15px;
-    border-radius:10px;
-    font-size:18px;
-    cursor:pointer;
-}
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            background: #f3f5f7;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-button:hover{
-    background:#218838;
-}
+        .caixa {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            padding: 30px 22px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
 
-#msg{
-    margin-top:20px;
-    color:#28a745;
-    font-weight:bold;
-}
-</style>
+        h1 {
+            margin-top: 0;
+            font-size: 25px;
+            color: #222222;
+        }
 
+        p {
+            color: #555555;
+            line-height: 1.5;
+        }
+
+        #codigoPix {
+            width: 100%;
+            height: 110px;
+            margin: 15px 0;
+            padding: 12px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            resize: none;
+            font-size: 13px;
+            background: #f8f8f8;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background: #00a884;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #mensagem {
+            min-height: 24px;
+            margin-top: 18px;
+            font-weight: bold;
+        }
+
+        .sucesso {
+            color: #00875a;
+        }
+
+        .erro {
+            color: #c62828;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="box">
+    <div class="caixa">
 
-<h2>Pagamento via PIX</h2>
+        <h1>Pagamento via PIX</h1>
 
-<p>Clique abaixo para copiar o código PIX.</p>
+        <p>
+            Clique no botão abaixo para copiar o código PIX.
+        </p>
 
-<button onclick="copiarPix()">
-📋 Copiar Código PIX
-</button>
+        <textarea
+            id="codigoPix"
+            readonly
+            aria-label="Código PIX"
+        ></textarea>
 
-<div id="msg"></div>
+        <button type="button" onclick="copiarPix()">
+            📋 Copiar código PIX
+        </button>
 
-</div>
+        <div id="mensagem"></div>
 
-<script>
+    </div>
 
-function getParametro(nome){
-    const params = new URLSearchParams(window.location.search);
-    return params.get(nome);
-}
+    <script>
+        const parametros = new URLSearchParams(window.location.search);
+        const codigoPix = parametros.get("pix") || "";
 
-function copiarPix(){
+        const campoCodigo = document.getElementById("codigoPix");
+        const mensagem = document.getElementById("mensagem");
 
-    let codigo = getParametro("pix");
+        campoCodigo.value = codigoPix;
 
-    if(!codigo){
-        document.getElementById("msg").innerHTML="Código PIX não informado.";
-        return;
-    }
+        if (!codigoPix) {
+            mensagem.textContent = "Código PIX não recebido.";
+            mensagem.className = "erro";
+        }
 
-    navigator.clipboard.writeText(codigo)
-    .then(function(){
-        document.getElementById("msg").innerHTML="✅ Código PIX copiado!";
-    })
-    .catch(function(){
-        document.getElementById("msg").innerHTML="Erro ao copiar.";
-    });
+        async function copiarPix() {
+            if (!codigoPix) {
+                mensagem.textContent = "Código PIX não informado.";
+                mensagem.className = "erro";
+                return;
+            }
 
-}
+            try {
+                if (
+                    navigator.clipboard &&
+                    window.isSecureContext
+                ) {
+                    await navigator.clipboard.writeText(codigoPix);
+                } else {
+                    copiarMetodoAlternativo();
+                }
 
-</script>
+                mensagem.textContent = "✅ Código PIX copiado com sucesso!";
+                mensagem.className = "sucesso";
+
+            } catch (erro) {
+                try {
+                    copiarMetodoAlternativo();
+
+                    mensagem.textContent =
+                        "✅ Código PIX copiado com sucesso!";
+
+                    mensagem.className = "sucesso";
+
+                } catch (erroAlternativo) {
+                    campoCodigo.focus();
+                    campoCodigo.select();
+
+                    mensagem.textContent =
+                        "Selecione o código acima e copie manualmente.";
+
+                    mensagem.className = "erro";
+                }
+            }
+        }
+
+        function copiarMetodoAlternativo() {
+            campoCodigo.focus();
+            campoCodigo.select();
+            campoCodigo.setSelectionRange(
+                0,
+                campoCodigo.value.length
+            );
+
+            const copiou = document.execCommand("copy");
+
+            if (!copiou) {
+                throw new Error("Não foi possível copiar.");
+            }
+
+            window.getSelection().removeAllRanges();
+        }
+    </script>
 
 </body>
 </html>
