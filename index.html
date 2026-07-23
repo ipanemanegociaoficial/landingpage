@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Pagamento via PIX</title>
+    <title>Pagamento via PIX | Ipanema</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -21,8 +21,18 @@
             margin: 0;
             min-height: 100vh;
             padding: 20px;
-            background: #f2f5f7;
-            font-family: Arial, Helvetica, sans-serif;
+            background:
+                linear-gradient(
+                    135deg,
+                    #f2f7ff,
+                    #ffffff
+                );
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
             display: flex;
             justify-content: center;
             align-items: center;
@@ -33,29 +43,68 @@
             max-width: 430px;
             padding: 28px 22px;
             background: #ffffff;
-            border-radius: 18px;
+            border: 1px solid #e3ecfb;
+            border-radius: 22px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+            box-shadow:
+                0 14px 40px
+                rgba(42, 102, 190, 0.14);
+        }
+
+        .logo {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            margin: 0 auto 16px;
+            display: block;
+        }
+
+        .linha {
+            width: 60px;
+            height: 4px;
+            margin: 0 auto 20px;
+            background: #6db8ff;
+            border-radius: 20px;
         }
 
         h1 {
             margin: 0 0 8px;
-            color: #222222;
-            font-size: 26px;
+            color: #25364d;
+            font-size: 25px;
         }
 
         .subtitulo {
             margin: 0 0 18px;
-            color: #666666;
+            color: #65758b;
             font-size: 15px;
             line-height: 1.5;
         }
 
+        .dados-pagamento {
+            margin-bottom: 18px;
+            padding: 14px;
+            background: #f5f9ff;
+            border: 1px solid #dceaff;
+            border-radius: 14px;
+        }
+
+        .texto-valor {
+            margin-bottom: 4px;
+            color: #6e7e93;
+            font-size: 13px;
+        }
+
         .valor {
-            margin: 0 0 18px;
-            color: #222222;
-            font-size: 24px;
+            color: #397ee8;
+            font-size: 28px;
             font-weight: bold;
+        }
+
+        .recebedor {
+            margin-top: 7px;
+            color: #52647b;
+            font-size: 13px;
         }
 
         #qrcode {
@@ -64,8 +113,9 @@
             margin: 0 auto 22px;
             padding: 10px;
             background: #ffffff;
-            border: 1px solid #eeeeee;
-            border-radius: 12px;
+            border: 1px solid #dde9f7;
+            border-radius: 16px;
+
             display: flex;
             justify-content: center;
             align-items: center;
@@ -82,28 +132,42 @@
             height: 105px;
             margin: 0 0 16px;
             padding: 12px;
-            border: 1px solid #cccccc;
-            border-radius: 10px;
-            background: #f8f8f8;
-            color: #333333;
+            border: 1px solid #cfdef1;
+            border-radius: 12px;
+            background: #f8fbff;
+            color: #3e4c5f;
             font-size: 13px;
+            line-height: 1.4;
             resize: none;
+            outline: none;
+        }
+
+        #codigoPix:focus {
+            border-color: #6db8ff;
         }
 
         .botao {
             width: 100%;
             padding: 16px;
             border: none;
-            border-radius: 10px;
-            background: #00a884;
+            border-radius: 12px;
+            background: #6db8ff;
             color: #ffffff;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
+
+            box-shadow:
+                0 8px 18px
+                rgba(72, 156, 239, 0.28);
+
+            transition:
+                background 0.2s,
+                transform 0.1s;
         }
 
         .botao:hover {
-            background: #008f70;
+            background: #4da6f7;
         }
 
         .botao:active {
@@ -113,11 +177,12 @@
         #mensagem {
             min-height: 24px;
             margin-top: 16px;
+            font-size: 14px;
             font-weight: bold;
         }
 
         .sucesso {
-            color: #00875a;
+            color: #14885f;
         }
 
         .erro {
@@ -125,36 +190,103 @@
         }
 
         .orientacao {
-            margin-top: 18px;
-            color: #666666;
-            font-size: 14px;
+            margin: 16px 0 0;
+            color: #6b7b90;
+            font-size: 13px;
             line-height: 1.5;
+        }
+
+        .seguranca {
+            margin-top: 18px;
+            padding-top: 15px;
+            border-top: 1px solid #edf1f6;
+            color: #8290a2;
+            font-size: 12px;
+        }
+
+        .carregando {
+            color: #6b7b90;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+                align-items: flex-start;
+            }
+
+            .caixa {
+                margin-top: 10px;
+                padding: 24px 17px;
+                border-radius: 18px;
+            }
+
+            .logo {
+                max-width: 190px;
+            }
+
+            #qrcode {
+                width: 240px;
+                min-height: 240px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="caixa">
+    <main class="caixa">
+
+        <img
+            src="logo.png"
+            alt="Ipanema"
+            class="logo"
+        >
+
+        <div class="linha"></div>
 
         <h1>Pagamento via PIX</h1>
 
         <p class="subtitulo">
-            Escaneie o QR Code com o aplicativo do seu banco
+            Escaneie o QR Code pelo aplicativo do seu banco
             ou copie o código PIX abaixo.
         </p>
 
-        <div
-            id="valorPagamento"
-            class="valor"
-        ></div>
+        <section class="dados-pagamento">
 
-        <div id="qrcode"></div>
+            <div class="texto-valor">
+                Valor do pagamento
+            </div>
+
+            <div
+                id="valorPagamento"
+                class="valor"
+            >
+                Carregando...
+            </div>
+
+            <div
+                id="nomeRecebedorExibicao"
+                class="recebedor"
+            ></div>
+
+        </section>
+
+        <div id="qrcode">
+            <span class="carregando">
+                Gerando QR Code...
+            </span>
+        </div>
 
         <textarea
             id="codigoPix"
             readonly
-            aria-label="Código PIX"
+            aria-label="Código PIX Copia e Cola"
+            placeholder="Gerando código PIX..."
         ></textarea>
 
         <button
@@ -162,17 +294,22 @@
             class="botao"
             onclick="copiarPix()"
         >
-            📋 Copiar código PIX
+            Copiar código PIX
         </button>
 
         <div id="mensagem"></div>
 
         <p class="orientacao">
             Depois de copiar, abra o aplicativo do seu banco,
-            selecione PIX Copia e Cola e cole o código.
+            escolha a opção <strong>PIX Copia e Cola</strong>
+            e cole o código.
         </p>
 
-    </div>
+        <div class="seguranca">
+            🔒 Ambiente seguro para pagamento
+        </div>
+
+    </main>
 
     <script>
         /*
@@ -181,9 +318,8 @@
         =====================================================
         */
 
-        const parametros = new URLSearchParams(
-            window.location.search
-        );
+        const parametros =
+            new URLSearchParams(window.location.search);
 
         const tipoChaveRecebido = (
             parametros.get("tipochave_pix") || ""
@@ -227,13 +363,18 @@
         const areaValor =
             document.getElementById("valorPagamento");
 
+        const areaNomeRecebedor =
+            document.getElementById(
+                "nomeRecebedorExibicao"
+            );
+
         let codigoPix = "";
 
         iniciar();
 
         /*
         =====================================================
-        INICIA A GERAÇÃO DO PIX
+        INICIA A GERAÇÃO
         =====================================================
         */
 
@@ -244,9 +385,8 @@
                     tipoChaveRecebido
                 );
 
-                const valorPix = prepararValor(
-                    valorRecebido
-                );
+                const valorPix =
+                    prepararValor(valorRecebido);
 
                 const identificadorPix =
                     prepararIdentificador(
@@ -308,19 +448,28 @@
                 areaValor.textContent =
                     formatarValorExibicao(valorPix);
 
+                areaNomeRecebedor.textContent =
+                    "Recebedor: " +
+                    formatarNomeExibicao(
+                        nomeRecebedorRecebido
+                    );
+
                 gerarQrCode(codigoPix);
 
             } catch (erro) {
                 console.error(erro);
 
-                mensagem.textContent = erro.message;
+                mensagem.textContent =
+                    erro.message;
+
                 mensagem.className = "erro";
 
                 areaQrCode.innerHTML =
                     "QR Code indisponível";
 
                 campoCodigo.value = "";
-                areaValor.textContent = "";
+                areaValor.textContent = "—";
+                areaNomeRecebedor.textContent = "";
             }
         }
 
@@ -347,7 +496,8 @@
                 tipoNormalizado === "TELEFONE" ||
                 tipoNormalizado === "CELULAR"
             ) {
-                let telefone = chave.replace(/\D/g, "");
+                let telefone =
+                    chave.replace(/\D/g, "");
 
                 if (
                     telefone &&
@@ -365,12 +515,6 @@
         /*
         =====================================================
         PREPARA O VALOR
-        Aceita:
-        100
-        100,00
-        100.00
-        R$ 100,00
-        1.250,90
         =====================================================
         */
 
@@ -391,7 +535,9 @@
                     .replace(/\./g, "")
                     .replace(",", ".");
 
-            } else if (valorLimpo.includes(",")) {
+            } else if (
+                valorLimpo.includes(",")
+            ) {
                 valorLimpo =
                     valorLimpo.replace(",", ".");
             }
@@ -464,10 +610,19 @@
             payload += montarCampo("26", contaPix);
             payload += montarCampo("52", "0000");
             payload += montarCampo("53", "986");
-            payload += montarCampo("54", dados.valor);
+            payload += montarCampo(
+                "54",
+                dados.valor
+            );
             payload += montarCampo("58", "BR");
-            payload += montarCampo("59", dados.nome);
-            payload += montarCampo("60", dados.cidade);
+            payload += montarCampo(
+                "59",
+                dados.nome
+            );
+            payload += montarCampo(
+                "60",
+                dados.cidade
+            );
             payload += montarCampo(
                 "62",
                 dadosAdicionais
@@ -475,22 +630,20 @@
 
             payload += "6304";
 
-            const crc = calcularCRC16(payload);
-
-            return payload + crc;
+            return payload +
+                calcularCRC16(payload);
         }
 
         /*
         =====================================================
-        MONTA CADA CAMPO
-        ID + TAMANHO + CONTEÚDO
+        MONTA OS CAMPOS
         =====================================================
         */
 
         function montarCampo(id, conteudo) {
-            const tamanho = String(
-                conteudo.length
-            ).padStart(2, "0");
+            const tamanho =
+                String(conteudo.length)
+                    .padStart(2, "0");
 
             return id + tamanho + conteudo;
         }
@@ -522,9 +675,20 @@
                 );
         }
 
+        function formatarNomeExibicao(nome) {
+            return String(nome || "")
+                .toLowerCase()
+                .replace(
+                    /(?:^|\s)\S/g,
+                    function(letra) {
+                        return letra.toUpperCase();
+                    }
+                );
+        }
+
         /*
         =====================================================
-        CALCULA O CRC16
+        CALCULA CRC16
         =====================================================
         */
 
@@ -585,7 +749,7 @@
 
         /*
         =====================================================
-        EXIBE O VALOR EM REAIS
+        FORMATA O VALOR
         =====================================================
         */
 
@@ -603,14 +767,14 @@
 
         /*
         =====================================================
-        COPIA O PIX
+        COPIA O CÓDIGO PIX
         =====================================================
         */
 
         async function copiarPix() {
             if (!codigoPix) {
                 mensagem.textContent =
-                    "Código PIX não informado.";
+                    "Código PIX indisponível.";
 
                 mensagem.className = "erro";
                 return;
@@ -628,19 +792,12 @@
                     copiarMetodoAlternativo();
                 }
 
-                mensagem.textContent =
-                    "✅ Código PIX copiado com sucesso!";
-
-                mensagem.className = "sucesso";
+                mostrarSucesso();
 
             } catch (erro) {
                 try {
                     copiarMetodoAlternativo();
-
-                    mensagem.textContent =
-                        "✅ Código PIX copiado com sucesso!";
-
-                    mensagem.className = "sucesso";
+                    mostrarSucesso();
 
                 } catch (erroAlternativo) {
                     campoCodigo.focus();
@@ -672,8 +829,19 @@
                 );
             }
 
-            window.getSelection()
-                .removeAllRanges();
+            const selecao =
+                window.getSelection();
+
+            if (selecao) {
+                selecao.removeAllRanges();
+            }
+        }
+
+        function mostrarSucesso() {
+            mensagem.textContent =
+                "✅ Código PIX copiado com sucesso!";
+
+            mensagem.className = "sucesso";
         }
     </script>
 
