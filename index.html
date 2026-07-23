@@ -45,10 +45,17 @@
         }
 
         .subtitulo {
-            margin: 0 0 22px;
+            margin: 0 0 18px;
             color: #666666;
             font-size: 15px;
             line-height: 1.5;
+        }
+
+        .valor {
+            margin: 0 0 18px;
+            color: #222222;
+            font-size: 24px;
+            font-weight: bold;
         }
 
         #qrcode {
@@ -137,6 +144,11 @@
             ou copie o código PIX abaixo.
         </p>
 
+        <div
+            id="valorPagamento"
+            class="valor"
+        ></div>
+
         <div id="qrcode"></div>
 
         <textarea
@@ -163,22 +175,401 @@
     </div>
 
     <script>
-        const parametros = new URLSearchParams(window.location.search);
-        const codigoPix = parametros.get("pix") || "";
+        /*
+        =====================================================
+        RECEBE OS CAMPOS DO MANYCHAT
+        =====================================================
+        */
 
-        const campoCodigo = document.getElementById("codigoPix");
-        const mensagem = document.getElementById("mensagem");
-        const areaQrCode = document.getElementById("qrcode");
+        const parametros = new URLSearchParams(
+            window.location.search
+        );
 
-        campoCodigo.value = codigoPix;
+        const tipoChaveRecebido = (
+            parametros.get("tipochave_pix") || ""
+        ).trim();
 
-        if (codigoPix) {
-            gerarQrCode(codigoPix);
-        } else {
-            mensagem.textContent = "Código PIX não recebido.";
-            mensagem.className = "erro";
-            areaQrCode.innerHTML = "QR Code indisponível";
+        const chaveRecebida = (
+            parametros.get("chave_pix") || ""
+        ).trim();
+
+        const identificadorRecebido = (
+            parametros.get("identificador_pix") || ""
+        ).trim();
+
+        const valorRecebido = (
+            parametros.get("valor_pix") || ""
+        ).trim();
+
+        const nomeRecebedorRecebido = (
+            parametros.get("nomerecebedor_pix") || ""
+        ).trim();
+
+        const cidadeRecebedorRecebida = (
+            parametros.get("cidaderecebedor_pix") || ""
+        ).trim();
+
+        /*
+        =====================================================
+        ELEMENTOS DA PÁGINA
+        =====================================================
+        */
+
+        const campoCodigo =
+            document.getElementById("codigoPix");
+
+        const mensagem =
+            document.getElementById("mensagem");
+
+        const areaQrCode =
+            document.getElementById("qrcode");
+
+        const areaValor =
+            document.getElementById("valorPagamento");
+
+        let codigoPix = "";
+
+        iniciar();
+
+        /*
+        =====================================================
+        INICIA A GERAÇÃO DO PIX
+        =====================================================
+        */
+
+        function iniciar() {
+            try {
+                const chavePix = prepararChavePix(
+                    chaveRecebida,
+                    tipoChaveRecebido
+                );
+
+                const valorPix = prepararValor(
+                    valorRecebido
+                );
+
+                const identificadorPix =
+                    prepararIdentificador(
+                        identificadorRecebido
+                    );
+
+                const nomeRecebedor =
+                    prepararTextoPix(
+                        nomeRecebedorRecebido,
+                        25
+                    );
+
+                const cidadeRecebedor =
+                    prepararTextoPix(
+                        cidadeRecebedorRecebida,
+                        15
+                    );
+
+                if (!tipoChaveRecebido) {
+                    throw new Error(
+                        "O tipo da chave PIX não foi informado."
+                    );
+                }
+
+                if (!chavePix) {
+                    throw new Error(
+                        "A chave PIX não foi informada."
+                    );
+                }
+
+                if (!valorPix) {
+                    throw new Error(
+                        "O valor do PIX não foi informado ou é inválido."
+                    );
+                }
+
+                if (!nomeRecebedor) {
+                    throw new Error(
+                        "O nome do recebedor não foi informado."
+                    );
+                }
+
+                if (!cidadeRecebedor) {
+                    throw new Error(
+                        "A cidade do recebedor não foi informada."
+                    );
+                }
+
+                codigoPix = gerarCodigoPix({
+                    chave: chavePix,
+                    nome: nomeRecebedor,
+                    cidade: cidadeRecebedor,
+                    valor: valorPix,
+                    identificador: identificadorPix
+                });
+
+                campoCodigo.value = codigoPix;
+
+                areaValor.textContent =
+                    formatarValorExibicao(valorPix);
+
+                gerarQrCode(codigoPix);
+
+            } catch (erro) {
+                console.error(erro);
+
+                mensagem.textContent = erro.message;
+                mensagem.className = "erro";
+
+                areaQrCode.innerHTML =
+                    "QR Code indisponível";
+
+                campoCodigo.value = "";
+                areaValor.textContent = "";
+            }
         }
+
+        /*
+        =====================================================
+        PREPARA A CHAVE PIX
+        =====================================================
+        */
+
+        function prepararChavePix(chave, tipo) {
+            const tipoNormalizado =
+                removerAcentos(tipo)
+                    .toUpperCase()
+                    .trim();
+
+            if (
+                tipoNormalizado === "CNPJ" ||
+                tipoNormalizado === "CPF"
+            ) {
+                return chave.replace(/\D/g, "");
+            }
+
+            if (
+                tipoNormalizado === "TELEFONE" ||
+                tipoNormalizado === "CELULAR"
+            ) {
+                let telefone = chave.replace(/\D/g, "");
+
+                if (
+                    telefone &&
+                    !telefone.startsWith("55")
+                ) {
+                    telefone = "55" + telefone;
+                }
+
+                return "+" + telefone;
+            }
+
+            return chave.trim();
+        }
+
+        /*
+        =====================================================
+        PREPARA O VALOR
+        Aceita:
+        100
+        100,00
+        100.00
+        R$ 100,00
+        1.250,90
+        =====================================================
+        */
+
+        function prepararValor(valor) {
+            if (!valor) {
+                return "";
+            }
+
+            let valorLimpo = valor
+                .replace(/\s/g, "")
+                .replace(/R\$/gi, "");
+
+            if (
+                valorLimpo.includes(".") &&
+                valorLimpo.includes(",")
+            ) {
+                valorLimpo = valorLimpo
+                    .replace(/\./g, "")
+                    .replace(",", ".");
+
+            } else if (valorLimpo.includes(",")) {
+                valorLimpo =
+                    valorLimpo.replace(",", ".");
+            }
+
+            valorLimpo = valorLimpo.replace(
+                /[^0-9.]/g,
+                ""
+            );
+
+            const numero = Number(valorLimpo);
+
+            if (
+                !Number.isFinite(numero) ||
+                numero <= 0
+            ) {
+                return "";
+            }
+
+            return numero.toFixed(2);
+        }
+
+        /*
+        =====================================================
+        PREPARA O IDENTIFICADOR
+        =====================================================
+        */
+
+        function prepararIdentificador(
+            identificador
+        ) {
+            let identificadorLimpo =
+                removerAcentos(identificador)
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "")
+                    .substring(0, 25);
+
+            if (!identificadorLimpo) {
+                identificadorLimpo = "***";
+            }
+
+            return identificadorLimpo;
+        }
+
+        /*
+        =====================================================
+        GERA O PIX COPIA E COLA
+        =====================================================
+        */
+
+        function gerarCodigoPix(dados) {
+            const contaPix =
+                montarCampo(
+                    "00",
+                    "BR.GOV.BCB.PIX"
+                ) +
+                montarCampo(
+                    "01",
+                    dados.chave
+                );
+
+            const dadosAdicionais =
+                montarCampo(
+                    "05",
+                    dados.identificador
+                );
+
+            let payload = "";
+
+            payload += montarCampo("00", "01");
+            payload += montarCampo("26", contaPix);
+            payload += montarCampo("52", "0000");
+            payload += montarCampo("53", "986");
+            payload += montarCampo("54", dados.valor);
+            payload += montarCampo("58", "BR");
+            payload += montarCampo("59", dados.nome);
+            payload += montarCampo("60", dados.cidade);
+            payload += montarCampo(
+                "62",
+                dadosAdicionais
+            );
+
+            payload += "6304";
+
+            const crc = calcularCRC16(payload);
+
+            return payload + crc;
+        }
+
+        /*
+        =====================================================
+        MONTA CADA CAMPO
+        ID + TAMANHO + CONTEÚDO
+        =====================================================
+        */
+
+        function montarCampo(id, conteudo) {
+            const tamanho = String(
+                conteudo.length
+            ).padStart(2, "0");
+
+            return id + tamanho + conteudo;
+        }
+
+        /*
+        =====================================================
+        PREPARA NOME E CIDADE
+        =====================================================
+        */
+
+        function prepararTextoPix(
+            texto,
+            limite
+        ) {
+            return removerAcentos(texto)
+                .toUpperCase()
+                .replace(/[^A-Z0-9 ]/g, "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .substring(0, limite);
+        }
+
+        function removerAcentos(texto) {
+            return String(texto || "")
+                .normalize("NFD")
+                .replace(
+                    /[\u0300-\u036f]/g,
+                    ""
+                );
+        }
+
+        /*
+        =====================================================
+        CALCULA O CRC16
+        =====================================================
+        */
+
+        function calcularCRC16(texto) {
+            let resultado = 0xFFFF;
+
+            for (
+                let i = 0;
+                i < texto.length;
+                i++
+            ) {
+                resultado ^=
+                    texto.charCodeAt(i) << 8;
+
+                for (
+                    let bit = 0;
+                    bit < 8;
+                    bit++
+                ) {
+                    if (
+                        (resultado & 0x8000) !== 0
+                    ) {
+                        resultado =
+                            (resultado << 1) ^
+                            0x1021;
+                    } else {
+                        resultado =
+                            resultado << 1;
+                    }
+
+                    resultado &= 0xFFFF;
+                }
+            }
+
+            return resultado
+                .toString(16)
+                .toUpperCase()
+                .padStart(4, "0");
+        }
+
+        /*
+        =====================================================
+        GERA O QR CODE
+        =====================================================
+        */
 
         function gerarQrCode(texto) {
             areaQrCode.innerHTML = "";
@@ -187,13 +578,40 @@
                 text: texto,
                 width: 240,
                 height: 240,
-                correctLevel: QRCode.CorrectLevel.M
+                correctLevel:
+                    QRCode.CorrectLevel.M
             });
         }
 
+        /*
+        =====================================================
+        EXIBE O VALOR EM REAIS
+        =====================================================
+        */
+
+        function formatarValorExibicao(valor) {
+            const numero = Number(valor);
+
+            return numero.toLocaleString(
+                "pt-BR",
+                {
+                    style: "currency",
+                    currency: "BRL"
+                }
+            );
+        }
+
+        /*
+        =====================================================
+        COPIA O PIX
+        =====================================================
+        */
+
         async function copiarPix() {
             if (!codigoPix) {
-                mensagem.textContent = "Código PIX não informado.";
+                mensagem.textContent =
+                    "Código PIX não informado.";
+
                 mensagem.className = "erro";
                 return;
             }
@@ -203,7 +621,9 @@
                     navigator.clipboard &&
                     window.isSecureContext
                 ) {
-                    await navigator.clipboard.writeText(codigoPix);
+                    await navigator.clipboard.writeText(
+                        codigoPix
+                    );
                 } else {
                     copiarMetodoAlternativo();
                 }
@@ -243,13 +663,17 @@
                 campoCodigo.value.length
             );
 
-            const copiou = document.execCommand("copy");
+            const copiou =
+                document.execCommand("copy");
 
             if (!copiou) {
-                throw new Error("Não foi possível copiar.");
+                throw new Error(
+                    "Não foi possível copiar."
+                );
             }
 
-            window.getSelection().removeAllRanges();
+            window.getSelection()
+                .removeAllRanges();
         }
     </script>
 
