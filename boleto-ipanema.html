@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segunda via - Boleto | Ipanema</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #f2f7ff, #ffffff);
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .caixa {
+            width: 100%;
+            max-width: 430px;
+            padding: 28px 22px;
+            background: #ffffff;
+            border: 1px solid #dce8f7;
+            border-radius: 22px;
+            text-align: center;
+            box-shadow: 0 14px 40px rgba(55, 119, 190, 0.14);
+        }
+
+        .logo {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 16px;
+            padding: 8px;
+            display: block;
+            object-fit: contain;
+            background: #ffffff;
+            border: 2px solid #d7e6f7;
+            border-radius: 50%;
+            box-shadow: 0 6px 18px rgba(55, 119, 190, 0.16);
+        }
+
+        .linha {
+            width: 60px;
+            height: 4px;
+            margin: 0 auto 20px;
+            background: #5b9fe8;
+            border-radius: 20px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: #25364d;
+            font-size: 25px;
+        }
+
+        .subtitulo {
+            margin: 0 0 18px;
+            color: #65758b;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .dados-pagamento {
+            margin-bottom: 18px;
+            padding: 14px;
+            background: #f4f8fd;
+            border: 1px solid #d7e6f7;
+            border-radius: 14px;
+        }
+
+        .texto-valor {
+            margin-bottom: 4px;
+            color: #6e7e93;
+            font-size: 13px;
+        }
+
+        .valor {
+            color: #397fc5;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .recebedor {
+            margin-top: 7px;
+            color: #52647b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .codigo-box {
+            margin: 0 0 16px;
+            padding: 15px;
+            background: #f7faff;
+            border: 1px solid #cfe0f3;
+            border-radius: 14px;
+            text-align: left;
+        }
+
+        .codigo-titulo {
+            margin-bottom: 8px;
+            color: #52647b;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        #codigoBarras {
+            width: 100%;
+            min-height: 108px;
+            padding: 12px;
+            border: 1px solid #cfe0f3;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #25364d;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 15px;
+            line-height: 1.55;
+            word-break: break-all;
+            resize: none;
+            outline: none;
+        }
+
+        #codigoBarras:focus { border-color: #5b9fe8; }
+
+        .botao {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #5b9fe8;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(70, 139, 213, 0.28);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .botao:hover { background: #438bd5; }
+        .botao:active { transform: scale(0.98); }
+        .botao:disabled { opacity: .55; cursor: not-allowed; }
+
+        #mensagem {
+            min-height: 24px;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .sucesso { color: #2879c2; }
+        .erro { color: #c62828; }
+
+        .orientacao {
+            margin: 16px 0 0;
+            color: #6b7b90;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .seguranca {
+            margin-top: 18px;
+            padding-top: 15px;
+            border-top: 1px solid #edf1f6;
+            color: #8290a2;
+            font-size: 12px;
+        }
+
+        .financeiro-box {
+            display: none;
+            margin: 14px 0 16px;
+            padding: 16px;
+            background: #f0fff4;
+            border: 2px solid #25d366;
+            border-radius: 14px;
+            text-align: left;
+        }
+
+        .financeiro-box.show { display: block; }
+
+        .financeiro-box strong {
+            display: block;
+            margin-bottom: 7px;
+            color: #25364d;
+            font-size: 15px;
+        }
+
+        .financeiro-box p {
+            margin: 0;
+            color: #61738a;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .financeiro-btn {
+            display: flex;
+            width: 100%;
+            min-height: 52px;
+            margin-top: 14px;
+            padding: 13px 16px;
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            background: #25d366;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.30);
+        }
+
+        .financeiro-btn:hover { background: #1ebe5d; }
+
+        @media (max-width: 480px) {
+            body { padding: 12px; align-items: flex-start; }
+            .caixa { margin-top: 10px; padding: 24px 17px; border-radius: 18px; }
+            .logo { width: 96px; height: 96px; }
+            h1 { font-size: 23px; }
+            .financeiro-box.show {
+                position: sticky;
+                bottom: 8px;
+                z-index: 20;
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="caixa">
+        <img src="ipanema_logo.png" alt="Ipanema" class="logo">
+        <div class="linha"></div>
+
+        <h1>Pagamento via Boleto</h1>
+
+        <p class="subtitulo">
+            Confira os dados da sua segunda via e copie o código de barras abaixo
+            para realizar o pagamento pelo aplicativo do seu banco.
+        </p>
+
+        <section class="dados-pagamento">
+            <div class="texto-valor">Valor do boleto</div>
+            <div id="valorPagamento" class="valor">—</div>
+            <div id="dadosClienteExibicao" class="recebedor"></div>
+        </section>
+
+        <div class="codigo-box">
+            <div class="codigo-titulo">Código de barras / linha digitável</div>
+            <textarea
+                id="codigoBarras"
+                readonly
+                aria-label="Código de barras do boleto"
+                placeholder="Carregando código de barras..."
+            ></textarea>
+        </div>
+
+        <div id="financeiroBox" class="financeiro-box">
+            <strong>✅ Código copiado! Agora é só realizar o pagamento.</strong>
+            <p>
+                Após o pagamento, envie o comprovante pelo WhatsApp para
+                concluirmos a baixa em sistema.
+            </p>
+            <a
+                id="financeiroBtn"
+                class="financeiro-btn"
+                href="#"
+                target="_blank"
+                rel="noopener"
+            >
+                📲 ENVIAR COMPROVANTE PELO WHATSAPP
+            </a>
+        </div>
+
+        <button id="botaoCopiar" type="button" class="botao" onclick="copiarCodigo()">
+            Copiar código de barras
+        </button>
+
+        <div id="mensagem"></div>
+
+        <p class="orientacao">
+            Depois de copiar, abra o aplicativo do seu banco, escolha a opção
+            <strong>Pagamento de boleto</strong> ou <strong>Linha digitável</strong>
+            e cole o código.
+        </p>
+
+        <div class="seguranca">🔒 Ambiente seguro para pagamento</div>
+    </main>
+
+    <script>
+        const parametros = new URLSearchParams(window.location.search);
+
+        // Parâmetros principais esperados pelo ManyChat:
+        // codigo_barras, valor_boleto, nomecliente_boleto, cpfcliente_boleto
+        // Também aceitamos alguns nomes alternativos para facilitar testes/migração.
+        const codigoRecebido = obterParametro([
+            "codigo_barras",
+            "codigobarras",
+            "boleto"
+        ]);
+
+        const valorRecebido = obterParametro([
+            "valor_boleto",
+            "valor",
+            "valor_pix"
+        ]);
+
+        const nomeClienteRecebido = obterParametro([
+            "nomecliente_boleto",
+            "nomecliente",
+            "nomecliente_pix"
+        ]);
+
+        const cpfClienteRecebido = obterParametro([
+            "cpfcliente_boleto",
+            "cpfcliente",
+            "cpfcliente_pix"
+        ]);
+
+        const campoCodigo = document.getElementById("codigoBarras");
+        const mensagem = document.getElementById("mensagem");
+        const areaValor = document.getElementById("valorPagamento");
+        const areaDadosCliente = document.getElementById("dadosClienteExibicao");
+        const financeiroBox = document.getElementById("financeiroBox");
+        const financeiroBtn = document.getElementById("financeiroBtn");
+        const botaoCopiar = document.getElementById("botaoCopiar");
+
+        const WHATSAPP_FINANCEIRO = "5511962793537";
+        let codigoBarras = "";
+
+        iniciar();
+
+        function obterParametro(nomes) {
+            for (const nome of nomes) {
+                const valor = (parametros.get(nome) || "").trim();
+                if (valor) return valor;
+            }
+            return "";
+        }
+
+        function iniciar() {
+            codigoBarras = normalizarCodigoBarras(codigoRecebido);
+
+            if (!codigoBarras) {
+                campoCodigo.value = "";
+                campoCodigo.placeholder = "Código de barras indisponível.";
+                mensagem.textContent = "Código de barras não informado.";
+                mensagem.className = "erro";
+                botaoCopiar.disabled = true;
+            } else {
+                campoCodigo.value = codigoBarras;
+            }
+
+            const valor = prepararValor(valorRecebido);
+            areaValor.textContent = valor ? formatarValorExibicao(valor) : "—";
+
+            const dados = [];
+            if (nomeClienteRecebido) dados.push("Nome: " + nomeClienteRecebido);
+            if (cpfClienteRecebido) dados.push("CPF: " + formatarCpf(cpfClienteRecebido));
+            areaDadosCliente.textContent = dados.join(" - ");
+        }
+
+        function normalizarCodigoBarras(codigo) {
+            // Boleto normalmente chega como 44, 47 ou 48 dígitos.
+            // Retiramos pontos, espaços e outros separadores para facilitar a cópia no banco.
+            return String(codigo || "").replace(/\D/g, "");
+        }
+
+        function prepararValor(valor) {
+            if (!valor) return "";
+
+            let valorLimpo = String(valor)
+                .replace(/\s/g, "")
+                .replace(/R\$/gi, "");
+
+            if (valorLimpo.includes(".") && valorLimpo.includes(",")) {
+                valorLimpo = valorLimpo.replace(/\./g, "").replace(",", ".");
+            } else if (valorLimpo.includes(",")) {
+                valorLimpo = valorLimpo.replace(",", ".");
+            }
+
+            valorLimpo = valorLimpo.replace(/[^0-9.]/g, "");
+            const numero = Number(valorLimpo);
+
+            if (!Number.isFinite(numero) || numero <= 0) return "";
+            return numero.toFixed(2);
+        }
+
+        function formatarValorExibicao(valor) {
+            return Number(valor).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
+
+        function formatarCpf(cpf) {
+            const numeros = String(cpf || "").replace(/\D/g, "");
+            if (numeros.length !== 11) return cpf;
+            return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
+
+        function prepararLinkFinanceiro() {
+            const valorExibicao = areaValor.textContent || "";
+            const cpfCliente = formatarCpf(cpfClienteRecebido);
+
+            const texto =
+                "Olá, realizei o pagamento do meu boleto e gostaria de encaminhar o comprovante para baixa em sistema." +
+                (nomeClienteRecebido ? "\n\nNome: " + nomeClienteRecebido : "") +
+                (cpfCliente ? "\nCPF: " + cpfCliente : "") +
+                (valorExibicao && valorExibicao !== "—" ? "\nValor: " + valorExibicao : "");
+
+            financeiroBtn.href =
+                "https://wa.me/" +
+                WHATSAPP_FINANCEIRO +
+                "?text=" +
+                encodeURIComponent(texto);
+        }
+
+        async function copiarCodigo() {
+            if (!codigoBarras) {
+                mensagem.textContent = "Código de barras indisponível.";
+                mensagem.className = "erro";
+                return;
+            }
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(codigoBarras);
+                } else {
+                    copiarMetodoAlternativo();
+                }
+
+                mostrarSucesso();
+            } catch (erro) {
+                try {
+                    copiarMetodoAlternativo();
+                    mostrarSucesso();
+                } catch (erroAlternativo) {
+                    campoCodigo.focus();
+                    campoCodigo.select();
+                    mensagem.textContent = "Selecione o código acima e copie manualmente.";
+                    mensagem.className = "erro";
+                }
+            }
+        }
+
+        function copiarMetodoAlternativo() {
+            campoCodigo.focus();
+            campoCodigo.select();
+            campoCodigo.setSelectionRange(0, campoCodigo.value.length);
+
+            const copiou = document.execCommand("copy");
+            if (!copiou) throw new Error("Não foi possível copiar.");
+
+            const selecao = window.getSelection();
+            if (selecao) selecao.removeAllRanges();
+        }
+
+        function mostrarSucesso() {
+            mensagem.textContent = "✅ Código de barras copiado com sucesso!";
+            mensagem.className = "sucesso";
+            prepararLinkFinanceiro();
+            financeiroBox.classList.add("show");
+
+            if (window.innerWidth <= 480) {
+                setTimeout(function () {
+                    financeiroBox.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+                }, 120);
+            }
+        }
+    </script>
+</body>
+</html>
