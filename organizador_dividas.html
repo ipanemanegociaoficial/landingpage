@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizador de Dívidas</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      padding: 28px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      color: #123b6d;
+    }
+    .sub {
+      margin: 0 0 24px;
+      color: #6b7280;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 18px 0 8px;
+    }
+    textarea, input {
+      width: 100%;
+      border: 1px solid #cfd8e3;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+      transition: .2s;
+      background: #fff;
+    }
+    textarea:focus, input:focus {
+      border-color: #2b6cb0;
+      box-shadow: 0 0 0 3px rgba(43,108,176,.12);
+    }
+    textarea {
+      min-height: 230px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 13px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary { background: #1f5fa8; color: #fff; }
+    .success { background: #16834a; color: #fff; }
+    .secondary { background: #e8eef6; color: #123b6d; }
+    .total-box {
+      margin-top: 22px;
+      padding: 16px;
+      background: #f7fafc;
+      border: 1px solid #dbe5ef;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .status {
+      margin-top: 12px;
+      color: #16834a;
+      font-weight: 700;
+      min-height: 20px;
+    }
+    @media(max-width:700px){
+      .row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Organizador de Dívidas</h1>
+    <p class="sub">
+      Cole o texto recebido. O sistema coloca cada informação na frente do respectivo campo,
+      separa os contratos e soma os valores automaticamente.
+    </p>
+
+    <label for="entrada">Texto recebido</label>
+    <textarea id="entrada" placeholder="Cole aqui as informações recebidas..."></textarea>
+
+    <div class="row">
+      <div>
+        <label for="avista">Valor à vista para quitação</label>
+        <input id="avista" type="text" inputmode="decimal" placeholder="Ex.: 1.500,00">
+      </div>
+
+      <div>
+        <label>Total encontrado nos contratos</label>
+        <div class="total-box" id="totalEncontrado">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="primary" onclick="organizar()">Organizar texto</button>
+      <button class="success" onclick="copiarResultado()">Copiar resultado</button>
+      <button class="secondary" onclick="limparTudo()">Limpar</button>
+    </div>
+
+    <label for="resultado">Resultado pronto</label>
+    <textarea id="resultado" readonly></textarea>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+const ROTULOS = [
+  'Credor Original',
+  'Dias em atraso',
+  'Contrato',
+  'Descrição',
+  'Valor original do contrato'
+];
+
+function normalizar(texto) {
+  return texto
+    .replace(/\r/g, '')
+    .replace(/\u00A0/g, ' ')
+    .trim();
+}
+
+function moedaBR(valor) {
+  return valor.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function valorParaNumero(valor) {
+  if (!valor) return 0;
+
+  let limpo = valor
+    .replace(/R\$/gi, '')
+    .replace(/\s/g, '')
+    .trim();
+
+  if (limpo.includes(',')) {
+    limpo = limpo.replace(/\./g, '').replace(',', '.');
+  }
+
+  const n = parseFloat(limpo);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatarValorDigitado(valor) {
+  if (!valor.trim()) return '';
+  const n = valorParaNumero(valor);
+  return n ? moedaBR(n) : valor.trim();
+}
+
+function extrairCampos(texto) {
+  // Transforma o texto inteiro em uma sequência pesquisável,
+  // preservando os rótulos conhecidos.
+  const padraoRotulos =
+    /(Credor Original|Dias em atraso|Contrato|Descrição|Valor original do contrato)\s*:/gi;
+
+  let marcacoes = [];
+  let match;
+
+  while ((match = padraoRotulos.exec(texto)) !== null) {
+    marcacoes.push({
+      rotulo: match[1],
+      inicio: match.index,
+      fimRotulo: padraoRotulos.lastIndex
+    });
+  }
+
+  const itens = [];
+
+  for (let i = 0; i < marcacoes.length; i++) {
+    const atual = marcacoes[i];
+    const proximo = marcacoes[i + 1];
+
+    let valor = texto.substring(
+      atual.fimRotulo,
+      proximo ? proximo.inicio : texto.length
+    );
+
+    valor = valor
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    itens.push({
+      rotulo: atual.rotulo,
+      valor: valor
+    });
+  }
+
+  return itens;
+}
+
+function organizar() {
+  const entradaOriginal = document.getElementById('entrada').value.replace(/\r/g, '');
+  const entrada = normalizar(entradaOriginal);
+  const avista = document.getElementById('avista').value;
+  const status = document.getElementById('status');
+
+  if (!entrada) {
+    status.textContent = 'Cole primeiro o texto recebido.';
+    return;
+  }
+
+  // Preserva obrigatoriamente as duas primeiras linhas exatamente como foram informadas.
+  const linhasOriginais = entradaOriginal.split('\n');
+  const cabecalho = linhasOriginais.slice(0, 2).map(l => l.trim());
+  const restanteEntrada = linhasOriginais.slice(2).join('\n');
+
+  const itens = extrairCampos(restanteEntrada);
+
+  if (!itens.length) {
+    status.textContent = 'Não consegui localizar os campos no texto.';
+    return;
+  }
+
+  let linhas = [];
+
+  // Mantém nome e quantidade de dívidas no topo e pula uma linha.
+  cabecalho.forEach(linha => linhas.push(linha));
+  linhas.push('');
+
+  let total = 0;
+
+  for (let i = 0; i < itens.length; i++) {
+    const item = itens[i];
+
+    // Remove qualquer total que já tenha vindo misturado depois do último valor.
+    if (/^Valor original do contrato$/i.test(item.rotulo)) {
+      const matchValor = item.valor.match(/R\$\s*[\d.]+,\d{2}/i);
+
+      if (matchValor) {
+        item.valor = matchValor[0];
+        total += valorParaNumero(matchValor[0]);
+      }
+    }
+
+    linhas.push(item.rotulo + ': ' + item.valor);
+
+    // Depois de cada valor de contrato, pula uma linha.
+    if (/^Valor original do contrato$/i.test(item.rotulo)) {
+      linhas.push('');
+    }
+  }
+
+  // Remove linhas vazias excedentes no fim.
+  while (linhas.length && linhas[linhas.length - 1] === '') {
+    linhas.pop();
+  }
+
+  linhas.push('');
+  linhas.push('');
+  linhas.push('Valor total de seus contratos R$: ' + moedaBR(total));
+  linhas.push('');
+  linhas.push('Valor à vista para quitação R$: ' + formatarValorDigitado(avista));
+
+  document.getElementById('resultado').value = linhas.join('\n');
+  document.getElementById('totalEncontrado').textContent = 'R$ ' + moedaBR(total);
+
+  const qtd = itens.filter(x =>
+    /^Valor original do contrato$/i.test(x.rotulo)
+  ).length;
+
+  status.textContent = qtd + ' contrato(s) localizado(s) e organizado(s).';
+}
+
+async function copiarResultado() {
+  const campo = document.getElementById('resultado');
+  const status = document.getElementById('status');
+
+  if (!campo.value) {
+    status.textContent = 'Organize o texto antes de copiar.';
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(campo.value);
+    status.textContent = 'Resultado copiado.';
+  } catch {
+    campo.removeAttribute('readonly');
+    campo.select();
+    document.execCommand('copy');
+    campo.setAttribute('readonly', true);
+    status.textContent = 'Resultado copiado.';
+  }
+}
+
+function limparTudo() {
+  document.getElementById('entrada').value = '';
+  document.getElementById('avista').value = '';
+  document.getElementById('resultado').value = '';
+  document.getElementById('totalEncontrado').textContent = 'R$ 0,00';
+  document.getElementById('status').textContent = '';
+}
+</script>
+</body>
+</html>
