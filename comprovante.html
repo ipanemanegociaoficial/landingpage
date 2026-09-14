@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Comprovante | Ipanema</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f8fc;color:#18324a;min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(560px,95vw);background:#fff;border:1px solid #dfe8f1;border-radius:18px;padding:28px;text-align:center;box-shadow:0 12px 35px rgba(33,70,110,.09)}h1{font-size:22px;margin:0 0 10px}.status{color:#667482;line-height:1.5}.spinner{width:34px;height:34px;border:4px solid #dfe8f1;border-top-color:#1769aa;border-radius:50%;margin:20px auto;animation:spin .8s linear infinite}.hidden{display:none}.error{color:#b33434}button{border:0;border-radius:10px;padding:12px 18px;background:#1769aa;color:#fff;font-weight:700;cursor:pointer;margin-top:14px}.backBtn{position:fixed;top:16px;left:16px;z-index:10;margin:0;padding:11px 16px;box-shadow:0 4px 14px rgba(33,70,110,.18);font-size:15px}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<button class="backBtn" type="button" onclick="voltarAdmin()" aria-label="Voltar">← Voltar</button>
+<div class="card">
+<h1>Comprovante de pagamento</h1>
+<div id="spinner" class="spinner"></div>
+<div id="status" class="status">Localizando o comprovante...</div>
+<button id="closeBtn" class="hidden" type="button" onclick="window.close()">Fechar</button>
+</div>
+<script>
+function voltarAdmin(){
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.close();
+  }
+}
+(async function(){
+  const id=(new URLSearchParams(location.search).get('id')||'').trim();
+  const status=document.getElementById('status');
+  const spinner=document.getElementById('spinner');
+  const closeBtn=document.getElementById('closeBtn');
+  if(!id){ spinner.classList.add('hidden'); status.classList.add('error'); status.textContent='Código do comprovante não informado.'; closeBtn.classList.remove('hidden'); return; }
+  const exts=['pdf','jpg','jpeg','png'];
+  for(const ext of exts){
+    const url=`./${id}.${ext}`;
+    try{
+      const r=await fetch(url,{method:'HEAD',cache:'no-store'});
+      if(r.ok){ location.replace(url); return; }
+    }catch(e){}
+  }
+  // Fallback GET para hosts que não respondem corretamente a HEAD.
+  for(const ext of exts){
+    const url=`./${id}.${ext}`;
+    try{
+      const r=await fetch(url,{method:'GET',cache:'no-store'});
+      if(r.ok){ location.replace(url); return; }
+    }catch(e){}
+  }
+  spinner.classList.add('hidden'); status.classList.add('error');
+  status.innerHTML='Comprovante não encontrado.<br>Verifique se o arquivo foi enviado com o nome <strong>'+id+'</strong> e extensão PDF, JPG, JPEG ou PNG.';
+  closeBtn.classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
