@@ -198,8 +198,7 @@
 
 let contadorBoletoTimer = null;
 let verificacaoSilenciosaTimer = null;
-let primeiraContagemBoleto = true;
-let fimContagemBoleto = null;
+let restanteBoleto = 360;
 
 function formatarTempoBoleto(segundos){
   const min = Math.floor(segundos / 60);
@@ -208,31 +207,23 @@ function formatarTempoBoleto(segundos){
 }
 
 function iniciarContagemBoleto(){
-  // Se a contagem já está ativa, NÃO reinicia nem troca para 03:00.
-  if(contadorBoletoTimer || fimContagemBoleto) return;
-
-  const duracao = primeiraContagemBoleto ? 360 : 180;
-  primeiraContagemBoleto = false;
-  fimContagemBoleto = Date.now() + (duracao * 1000);
+  if(contadorBoletoTimer) return;
 
   const n = document.getElementById('countdownNumber');
+  if(n) n.textContent = formatarTempoBoleto(restanteBoleto);
 
-  const atualizar = async ()=>{
-    const restante = Math.max(0, Math.ceil((fimContagemBoleto - Date.now()) / 1000));
-    if(n) n.textContent = formatarTempoBoleto(restante);
+  contadorBoletoTimer = setInterval(()=>{
+    if(restanteBoleto > 0) restanteBoleto--;
+    if(n) n.textContent = formatarTempoBoleto(restanteBoleto);
 
-    if(restante <= 0){
+    // Ao chegar a zero, o relógio fica em 00:00.
+    // A consulta automática continua separadamente a cada 60 segundos.
+    if(restanteBoleto <= 0){
       clearInterval(contadorBoletoTimer);
       contadorBoletoTimer = null;
-      fimContagemBoleto = null;
-      await consultarBoleto();
     }
-  };
-
-  atualizar();
-  contadorBoletoTimer = setInterval(atualizar, 1000);
+  },1000);
 }
-
 
 function iniciarVerificacaoSilenciosa(){
   if(verificacaoSilenciosaTimer) return;
@@ -253,7 +244,6 @@ function pararContagemBoleto(){
     clearInterval(contadorBoletoTimer);
     contadorBoletoTimer = null;
   }
-  fimContagemBoleto = null;
 }
 
 const BANK_LOGOS_EMBEDDED={
@@ -398,8 +388,10 @@ function montarBoleto(d){
   tLinha2.textContent=l;
   tBanco1.textContent=bankCode;
   tBanco2.textContent=bankCode;
-  bankLogo1.src=bank.logo||'';
-  bankLogo2.src=bank.logo||'';
+  const logoBanco1=document.getElementById('bankLogo1');
+  const logoBanco2=document.getElementById('bankLogo2');
+  if(logoBanco1) logoBanco1.src=bank.logo||'';
+  if(logoBanco2) logoBanco2.src=bank.logo||'';
 
   tVenc1.textContent=dt;
   tDataDoc1.textContent=dt;
