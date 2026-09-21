@@ -199,6 +199,7 @@
 let contadorBoletoTimer = null;
 let verificacaoSilenciosaTimer = null;
 let primeiraContagemBoleto = true;
+let fimContagemBoleto = null;
 
 function formatarTempoBoleto(segundos){
   const min = Math.floor(segundos / 60);
@@ -207,30 +208,29 @@ function formatarTempoBoleto(segundos){
 }
 
 function iniciarContagemBoleto(){
-  if(contadorBoletoTimer) return;
+  // Se a contagem já está ativa, NÃO reinicia nem troca para 03:00.
+  if(contadorBoletoTimer || fimContagemBoleto) return;
 
-  let restante = primeiraContagemBoleto ? 360 : 180;
+  const duracao = primeiraContagemBoleto ? 360 : 180;
   primeiraContagemBoleto = false;
+  fimContagemBoleto = Date.now() + (duracao * 1000);
 
   const n = document.getElementById('countdownNumber');
-  if(n) n.textContent = formatarTempoBoleto(restante);
 
-  contadorBoletoTimer = setInterval(async ()=>{
-    restante--;
+  const atualizar = async ()=>{
+    const restante = Math.max(0, Math.ceil((fimContagemBoleto - Date.now()) / 1000));
+    if(n) n.textContent = formatarTempoBoleto(restante);
 
     if(restante <= 0){
       clearInterval(contadorBoletoTimer);
       contadorBoletoTimer = null;
-      if(n) n.textContent = '00:00';
-
-      // Ao zerar, consulta a planilha.
-      // Se ainda não houver código de barras, consultarBoleto inicia novo ciclo de 03:00.
+      fimContagemBoleto = null;
       await consultarBoleto();
-      return;
     }
+  };
 
-    if(n) n.textContent = formatarTempoBoleto(restante);
-  },1000);
+  atualizar();
+  contadorBoletoTimer = setInterval(atualizar, 1000);
 }
 
 
@@ -253,6 +253,7 @@ function pararContagemBoleto(){
     clearInterval(contadorBoletoTimer);
     contadorBoletoTimer = null;
   }
+  fimContagemBoleto = null;
 }
 
 const BANK_LOGOS_EMBEDDED={
